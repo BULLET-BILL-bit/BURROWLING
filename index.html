@@ -3,899 +3,769 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Dungeon Generator</title>
+<title>Burrow Generator</title>
 
 <style>
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #171717;
-    color: #eeeeee;
-    font-family: Georgia, serif;
-}
-
-.page {
-    width: min(1100px, 96vw);
-    margin: auto;
-    padding: 25px 0 40px;
-}
-
-h1 {
-    margin: 0 0 5px;
-}
-
-.subtitle {
-    color: #999;
-    margin-bottom: 20px;
-}
-
-.layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 25px;
-}
-
-.panel {
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 15px;
-}
-
-.param-header,
-.param {
-    display: grid;
-    grid-template-columns: 1fr 65px 65px;
-    gap: 7px;
-    align-items: center;
-}
-
-.param-header {
-    color: #888;
-    font-size: 12px;
-    margin-bottom: 6px;
-}
-
-.param {
-    margin-bottom: 9px;
-}
-
-.param label {
-    font-size: 14px;
-}
-
-input {
-    width: 100%;
-    background: #111;
-    color: #eee;
-    border: 1px solid #555;
-    border-radius: 4px;
-    padding: 7px;
-    font-family: inherit;
-}
-
-button {
-    width: 100%;
-    margin-top: 10px;
-    padding: 11px;
-    border: 0;
-    border-radius: 5px;
-    background: #eeeeee;
-    color: #111;
-    font-family: inherit;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #cccccc;
-}
-
-#stats {
-    margin-top: 15px;
-    color: #aaa;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-canvas {
-    width: min(70vw, 700px);
-    height: min(70vw, 700px);
-    max-width: 700px;
-    max-height: 700px;
-    background: #111;
-    border: 1px solid #555;
-    image-rendering: pixelated;
-}
-
-@media (max-width: 800px) {
-
-    .layout {
-        grid-template-columns: 1fr;
+    body {
+        margin: 0;
+        padding: 20px;
+        background: #181818;
+        color: #eee;
+        font-family: Arial, sans-serif;
     }
 
-    canvas {
-        width: 92vw;
-        height: 92vw;
+    h1 {
+        margin-top: 0;
     }
 
-}
+    .controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+        gap: 10px 20px;
+        max-width: 700px;
+        margin-bottom: 20px;
+    }
 
+    .control {
+        display: grid;
+        grid-template-columns: 1fr 70px 70px;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .control label {
+        font-size: 14px;
+    }
+
+    input {
+        width: 60px;
+        box-sizing: border-box;
+        background: #292929;
+        color: white;
+        border: 1px solid #555;
+        padding: 5px;
+    }
+
+    button {
+        background: #ddd;
+        color: #111;
+        border: 0;
+        padding: 10px 18px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 15px;
+    }
+
+    button:hover {
+        background: white;
+    }
+
+    #stats {
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #aaa;
+    }
+
+    #canvas {
+        width: 1024px;
+        height: 1024px;
+        max-width: 90vw;
+        max-height: 90vw;
+        image-rendering: pixelated;
+        border: 1px solid #444;
+        display: block;
+    }
 </style>
 </head>
 
 <body>
 
-<div class="page">
+<h1>Burrow Generator</h1>
 
-<h1>Dungeon Generator</h1>
+<div class="controls">
 
-<div class="subtitle">
-32 × 32
+    <div class="control">
+        <label>Numero stanze</label>
+        <input id="roomsMin" type="number" value="6">
+        <input id="roomsMax" type="number" value="18">
+    </div>
+
+    <div class="control">
+        <label>Altezza sopra</label>
+        <input id="upMin" type="number" value="0">
+        <input id="upMax" type="number" value="2">
+    </div>
+
+    <div class="control">
+        <label>Altezza sotto</label>
+        <input id="downMin" type="number" value="0">
+        <input id="downMax" type="number" value="2">
+    </div>
+
+    <div class="control">
+        <label>Distanza destra</label>
+        <input id="rightMin" type="number" value="0">
+        <input id="rightMax" type="number" value="2">
+    </div>
+
+    <div class="control">
+        <label>Distanza sinistra</label>
+        <input id="leftMin" type="number" value="0">
+        <input id="leftMax" type="number" value="2">
+    </div>
+
+    <div class="control">
+        <label>Corridoi extra %</label>
+        <input id="extraMin" type="number" value="0">
+        <input id="extraMax" type="number" value="25">
+    </div>
+
 </div>
 
-<div class="layout">
-
-<div class="panel">
-
-<div class="param-header">
-    <span>Parametro</span>
-    <span>Min</span>
-    <span>Max</span>
-</div>
-
-<div class="param">
-    <label>Numero stanze</label>
-    <input id="roomsMin" type="number" value="6">
-    <input id="roomsMax" type="number" value="18">
-</div>
-
-<div class="param">
-    <label>Altezza sopra</label>
-    <input id="topMin" type="number" value="0">
-    <input id="topMax" type="number" value="2">
-</div>
-
-<div class="param">
-    <label>Altezza sotto</label>
-    <input id="bottomMin" type="number" value="0">
-    <input id="bottomMax" type="number" value="2">
-</div>
-
-<div class="param">
-    <label>Distanza destra</label>
-    <input id="rightMin" type="number" value="0">
-    <input id="rightMax" type="number" value="2">
-</div>
-
-<div class="param">
-    <label>Distanza sinistra</label>
-    <input id="leftMin" type="number" value="0">
-    <input id="leftMax" type="number" value="2">
-</div>
-
-<div class="param">
-    <label>Corridoi extra %</label>
-    <input id="extraMin" type="number" value="0">
-    <input id="extraMax" type="number" value="25">
-</div>
-
-<button id="generate">
-    GENERA DUNGEON
-</button>
+<button onclick="generate()">GENERA BURROW</button>
 
 <div id="stats"></div>
 
-</div>
-
-<div>
-
 <canvas id="canvas" width="1024" height="1024"></canvas>
-
-</div>
-
-</div>
-
-</div>
 
 
 <script>
 
-/* =========================================================
-   IMPOSTAZIONI
-   ========================================================= */
-
-const SIZE = 32;
+const GRID = 32;
 const TILE = 32;
 
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const EMPTY = 0;
+const ROOM = 1;
+const CORRIDOR = 2;
 
 
-/* =========================================================
-   FUNZIONI RANDOM
-   ========================================================= */
+// ------------------------------------------------------------
+// UTILITÀ
+// ------------------------------------------------------------
 
 function randomInt(min, max) {
-
-    return Math.floor(
-        Math.random() * (max - min + 1)
-    ) + min;
-
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 
 function randomFloat(min, max) {
-
     return Math.random() * (max - min) + min;
-
 }
-
 
 function shuffle(array) {
-
     for (let i = array.length - 1; i > 0; i--) {
-
-        const j = Math.floor(
-            Math.random() * (i + 1)
-        );
-
-        [array[i], array[j]] =
-        [array[j], array[i]];
-
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
+    return array;
+}
 
+function createMatrix(value = EMPTY) {
+    return Array.from(
+        { length: GRID },
+        () => Array(GRID).fill(value)
+    );
 }
 
 
-/* =========================================================
-   LETTURA PARAMETRI
-   ========================================================= */
+// ------------------------------------------------------------
+// LETTURA PARAMETRI
+// ------------------------------------------------------------
 
-function getValue(id) {
+function getSettings() {
 
-    return Number(
-        document.getElementById(id).value
+    function range(minId, maxId) {
+        let min = Number(document.getElementById(minId).value);
+        let max = Number(document.getElementById(maxId).value);
+
+        if (min > max) {
+            [min, max] = [max, min];
+        }
+
+        return { min, max };
+    }
+
+    return {
+        rooms: range("roomsMin", "roomsMax"),
+        up: range("upMin", "upMax"),
+        down: range("downMin", "downMax"),
+        right: range("rightMin", "rightMax"),
+        left: range("leftMin", "leftMax"),
+        extra: range("extraMin", "extraMax")
+    };
+}
+
+
+// ------------------------------------------------------------
+// GENERAZIONE STANZE
+// ------------------------------------------------------------
+
+function generateRooms(settings) {
+
+    const roomMatrix = createMatrix();
+    const rooms = [];
+
+    const targetRooms = randomInt(
+        settings.rooms.min,
+        settings.rooms.max
     );
 
-}
+    let attempts = 0;
+    const maxAttempts = 5000;
 
+    while (
+        rooms.length < targetRooms &&
+        attempts < maxAttempts
+    ) {
 
-function range(a, b) {
+        attempts++;
 
-    if (a <= b) {
-        return [a, b];
+        const up = randomInt(
+            settings.up.min,
+            settings.up.max
+        );
+
+        const down = randomInt(
+            settings.down.min,
+            settings.down.max
+        );
+
+        const left = randomInt(
+            settings.left.min,
+            settings.left.max
+        );
+
+        const right = randomInt(
+            settings.right.min,
+            settings.right.max
+        );
+
+        /*
+            Il centroide è una cella vera e propria.
+
+            Esempio:
+            left  = 2
+            right = 1
+            up    = 1
+            down  = 2
+
+            La stanza occupa:
+
+            x-2 ... x ... x+1
+            y-1 ... y ... y+2
+        */
+
+        const minX = left + 1;
+        const maxX = GRID - right - 2;
+
+        const minY = up + 1;
+        const maxY = GRID - down - 2;
+
+        if (minX > maxX || minY > maxY) {
+            continue;
+        }
+
+        const cx = randomInt(minX, maxX);
+        const cy = randomInt(minY, maxY);
+
+        const cells = [];
+
+        let valid = true;
+
+        for (let y = cy - up; y <= cy + down; y++) {
+            for (let x = cx - left; x <= cx + right; x++) {
+
+                if (
+                    x < 0 ||
+                    x >= GRID ||
+                    y < 0 ||
+                    y >= GRID
+                ) {
+                    valid = false;
+                    break;
+                }
+
+                /*
+                    Lasciamo una cella vuota attorno alle stanze.
+                    Questo evita che due stanze si fondano.
+                */
+                for (let yy = y - 1; yy <= y + 1; yy++) {
+                    for (let xx = x - 1; xx <= x + 1; xx++) {
+
+                        if (
+                            xx >= 0 &&
+                            xx < GRID &&
+                            yy >= 0 &&
+                            yy < GRID &&
+                            roomMatrix[yy][xx] === ROOM
+                        ) {
+                            valid = false;
+                        }
+                    }
+                }
+
+                cells.push([x, y]);
+            }
+
+            if (!valid) break;
+        }
+
+        if (!valid) continue;
+
+        for (const [x, y] of cells) {
+            roomMatrix[y][x] = ROOM;
+        }
+
+        rooms.push({
+            x: cx,
+            y: cy,
+            up,
+            down,
+            left,
+            right
+        });
     }
 
-    return [b, a];
-
+    return {
+        matrix: roomMatrix,
+        rooms
+    };
 }
 
 
-/* =========================================================
-   DELAUNAY
-   Bowyer-Watson
-   ========================================================= */
+// ------------------------------------------------------------
+// DELAUNAY
+// ------------------------------------------------------------
 
 function circumcircle(a, b, c) {
 
-    const ax = a.x;
-    const ay = a.y;
+    const A = b.x - a.x;
+    const B = b.y - a.y;
+    const C = c.x - a.x;
+    const D = c.y - a.y;
 
-    const bx = b.x;
-    const by = b.y;
+    const E = A * (a.x + b.x) + B * (a.y + b.y);
+    const F = C * (a.x + c.x) + D * (a.y + c.y);
 
-    const cx = c.x;
-    const cy = c.y;
+    const G = 2 * (A * (c.y - b.y) - B * (c.x - b.x));
 
-    const d =
-        2 *
-        (
-            ax * (by - cy) +
-            bx * (cy - ay) +
-            cx * (ay - by)
-        );
-
-    if (Math.abs(d) < 0.000001) {
+    if (Math.abs(G) < 0.000001) {
         return null;
     }
 
-    const a2 = ax * ax + ay * ay;
-    const b2 = bx * bx + by * by;
-    const c2 = cx * cx + cy * cy;
+    const ux = (D * E - B * F) / G;
+    const uy = (A * F - C * E) / G;
 
-    const ux =
-        (
-            a2 * (by - cy) +
-            b2 * (cy - ay) +
-            c2 * (ay - by)
-        ) / d;
-
-    const uy =
-        (
-            a2 * (cx - bx) +
-            b2 * (ax - cx) +
-            c2 * (bx - ax)
-        ) / d;
-
-    const dx = ux - ax;
-    const dy = uy - ay;
+    const dx = ux - a.x;
+    const dy = uy - a.y;
 
     return {
-
         x: ux,
         y: uy,
-
         r2: dx * dx + dy * dy
-
     };
-
 }
 
 
 function delaunay(points) {
 
-    const n = points.length;
+    if (points.length < 2) return [];
 
-    if (n < 2) {
-        return [];
+    if (points.length === 2) {
+        return [{
+            a: 0,
+            b: 1
+        }];
     }
 
-    const pts =
-        points.map((p, i) => ({
-            x: p.x,
-            y: p.y,
-            i: i
-        }));
+    const pts = points.map((p, i) => ({
+        x: p.x,
+        y: p.y,
+        original: i
+    }));
 
-    /*
-       Grande triangolo che contiene
-       tutta la nostra mappa.
-    */
+    const superA = {
+        x: -1000,
+        y: -1000,
+        original: -1
+    };
 
-    const s = 1000;
+    const superB = {
+        x: 1000,
+        y: -1000,
+        original: -2
+    };
 
-    pts.push(
-        { x: -s, y: -s, i: n },
-        { x:  s, y: -s, i: n + 1 },
-        { x:  0, y:  s,  i: n + 2 }
-    );
+    const superC = {
+        x: 0,
+        y: 1000,
+        original: -3
+    };
+
+    pts.push(superA, superB, superC);
+
+    const n = points.length;
 
     let triangles = [
-
-        {
-            a: n,
-            b: n + 1,
-            c: n + 2,
-
-            circle:
-                circumcircle(
-                    pts[n],
-                    pts[n + 1],
-                    pts[n + 2]
-                )
-        }
-
+        [n, n + 1, n + 2]
     ];
 
+    for (let i = 0; i < n; i++) {
 
-    for (let pIndex = 0; pIndex < n; pIndex++) {
-
-        const p = pts[pIndex];
+        const p = pts[i];
 
         const bad = [];
 
+        for (let t = 0; t < triangles.length; t++) {
 
-        /*
-           Cerchiamo i triangoli il cui
-           circumcerchio contiene il nuovo punto.
-        */
+            const tri = triangles[t];
 
-        for (const t of triangles) {
-
-            if (!t.circle) {
-                continue;
-            }
-
-            const dx =
-                p.x - t.circle.x;
-
-            const dy =
-                p.y - t.circle.y;
-
-            if (
-                dx * dx +
-                dy * dy
-                <=
-                t.circle.r2 + 0.000001
-            ) {
-
-                bad.push(t);
-
-            }
-
-        }
-
-
-        /*
-           Bordo della zona da ricostruire.
-        */
-
-        const edges = new Map();
-
-
-        function addEdge(a, b) {
-
-            const key =
-                a < b
-                ? a + "," + b
-                : b + "," + a;
-
-            if (edges.has(key)) {
-
-                edges.delete(key);
-
-            } else {
-
-                edges.set(key, [a, b]);
-
-            }
-
-        }
-
-
-        for (const t of bad) {
-
-            addEdge(t.a, t.b);
-            addEdge(t.b, t.c);
-            addEdge(t.c, t.a);
-
-        }
-
-
-        triangles =
-            triangles.filter(
-                t => !bad.includes(t)
+            const circle = circumcircle(
+                pts[tri[0]],
+                pts[tri[1]],
+                pts[tri[2]]
             );
 
+            if (!circle) continue;
 
-        /*
-           Ricostruiamo i triangoli.
-        */
+            const dx = p.x - circle.x;
+            const dy = p.y - circle.y;
 
-        for (const edge of edges.values()) {
-
-            const a = edge[0];
-            const b = edge[1];
-
-            triangles.push({
-
-                a: a,
-                b: b,
-                c: pIndex,
-
-                circle:
-                    circumcircle(
-                        pts[a],
-                        pts[b],
-                        pts[pIndex]
-                    )
-
-            });
-
+            if (
+                dx * dx + dy * dy <=
+                circle.r2 + 0.000001
+            ) {
+                bad.push(t);
+            }
         }
 
+        const edgeMap = new Map();
+
+        for (const tIndex of bad) {
+
+            const tri = triangles[tIndex];
+
+            const edges = [
+                [tri[0], tri[1]],
+                [tri[1], tri[2]],
+                [tri[2], tri[0]]
+            ];
+
+            for (const edge of edges) {
+
+                const a = Math.min(edge[0], edge[1]);
+                const b = Math.max(edge[0], edge[1]);
+
+                const key = `${a}-${b}`;
+
+                edgeMap.set(
+                    key,
+                    (edgeMap.get(key) || 0) + 1
+                );
+            }
+        }
+
+        triangles = triangles.filter(
+            (_, index) => !bad.includes(index)
+        );
+
+        for (const [key, count] of edgeMap) {
+
+            if (count !== 1) continue;
+
+            const [a, b] = key.split("-").map(Number);
+
+            triangles.push([a, b, i]);
+        }
     }
 
+    const edges = new Set();
 
-    /*
-       Eliminiamo i triangoli collegati
-       al triangolo gigante.
-    */
-
-    const result = new Map();
-
-
-    for (const t of triangles) {
+    for (const tri of triangles) {
 
         if (
-            t.a >= n ||
-            t.b >= n ||
-            t.c >= n
+            tri[0] >= n ||
+            tri[1] >= n ||
+            tri[2] >= n
         ) {
             continue;
         }
 
-
-        const triangleEdges = [
-
-            [t.a, t.b],
-            [t.b, t.c],
-            [t.c, t.a]
-
+        const triEdges = [
+            [tri[0], tri[1]],
+            [tri[1], tri[2]],
+            [tri[2], tri[0]]
         ];
 
+        for (const [a, b] of triEdges) {
 
-        for (const edge of triangleEdges) {
+            const min = Math.min(a, b);
+            const max = Math.max(a, b);
 
-            const a = edge[0];
-            const b = edge[1];
-
-            const key =
-                a < b
-                ? a + "," + b
-                : b + "," + a;
-
-            if (!result.has(key)) {
-
-                result.set(
-                    key,
-                    {
-                        a: a,
-                        b: b
-                    }
-                );
-
-            }
-
+            edges.add(`${min}-${max}`);
         }
-
     }
 
+    return [...edges].map(key => {
 
-    return [...result.values()];
+        const [a, b] = key.split("-").map(Number);
 
+        return { a, b };
+    });
 }
 
 
-/* =========================================================
-   DISTANZA
-   ========================================================= */
+// ------------------------------------------------------------
+// DISTANZA
+// ------------------------------------------------------------
 
 function distance(a, b) {
 
     const dx = a.x - b.x;
     const dy = a.y - b.y;
 
-    return Math.sqrt(
-        dx * dx +
-        dy * dy
-    );
-
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 
-/* =========================================================
-   MINIMUM SPANNING TREE
-   Kruskal
-   ========================================================= */
+// ------------------------------------------------------------
+// MINIMUM SPANNING TREE
+// ------------------------------------------------------------
 
-function edgeKey(a, b) {
+function minimumSpanningTree(edges, rooms) {
 
-    return a < b
-        ? a + "," + b
-        : b + "," + a;
+    const sorted = [...edges].sort((e1, e2) => {
 
-}
-
-
-function minimumSpanningTree(points, edges) {
-
-    const sorted =
-        [...edges].sort(
-            (a, b) =>
-                distance(
-                    points[a.a],
-                    points[a.b]
-                )
-                -
-                distance(
-                    points[b.a],
-                    points[b.b]
-                )
+        const d1 = distance(
+            rooms[e1.a],
+            rooms[e1.b]
         );
 
+        const d2 = distance(
+            rooms[e2.a],
+            rooms[e2.b]
+        );
 
-    const parent =
-        points.map((_, i) => i);
+        return d1 - d2;
+    });
 
+    const parent = rooms.map((_, i) => i);
 
     function find(x) {
 
         while (parent[x] !== x) {
-
-            parent[x] =
-                parent[parent[x]];
-
+            parent[x] = parent[parent[x]];
             x = parent[x];
-
         }
 
         return x;
-
     }
-
 
     function union(a, b) {
 
-        a = find(a);
-        b = find(b);
+        const ra = find(a);
+        const rb = find(b);
 
-        if (a === b) {
+        if (ra === rb) {
             return false;
         }
 
-        parent[b] = a;
+        parent[rb] = ra;
 
         return true;
-
     }
 
-
-    const result = [];
-
+    const mst = [];
 
     for (const edge of sorted) {
 
-        if (
-            union(
-                edge.a,
-                edge.b
-            )
-        ) {
-
-            result.push(edge);
-
+        if (union(edge.a, edge.b)) {
+            mst.push(edge);
         }
-
     }
 
-
-    return result;
-
+    return mst;
 }
 
 
-/* =========================================================
-   GENERAZIONE STANZE
-   ========================================================= */
+// ------------------------------------------------------------
+// CORRIDOI
+// ------------------------------------------------------------
 
-function generateRooms(settings) {
-
-    const wanted =
-        randomInt(
-            settings.roomsMin,
-            settings.roomsMax
-        );
-
-
-    const rooms = [];
-
-    let attempts = 0;
-
-    const maxAttempts = 10000;
-
-
-    while (
-        rooms.length < wanted &&
-        attempts < maxAttempts
-    ) {
-
-        attempts++;
-
-
-        /*
-           Dimensioni della stanza
-           rispetto al centroide.
-        */
-
-        const top =
-            randomInt(
-                settings.topMin,
-                settings.topMax
-            );
-
-        const bottom =
-            randomInt(
-                settings.bottomMin,
-                settings.bottomMax
-            );
-
-        const left =
-            randomInt(
-                settings.leftMin,
-                settings.leftMax
-            );
-
-        const right =
-            randomInt(
-                settings.rightMin,
-                settings.rightMax
-            );
-
-
-        /*
-           Il centroide deve lasciare
-           spazio sufficiente intorno.
-        */
-
-        const xMin = left;
-        const xMax = SIZE - 1 - right;
-
-        const yMin = top;
-        const yMax = SIZE - 1 - bottom;
-
-
-        if (
-            xMin > xMax ||
-            yMin > yMax
-        ) {
-            continue;
-        }
-
-
-        const x =
-            randomInt(
-                xMin,
-                xMax
-            );
-
-        const y =
-            randomInt(
-                yMin,
-                yMax
-            );
-
-
-        const room = {
-
-            x: x,
-            y: y,
-
-            top: top,
-            bottom: bottom,
-
-            left: left,
-            right: right,
-
-            x0: x - left,
-            x1: x + right,
-
-            y0: y - top,
-            y1: y + bottom
-
-        };
-
-
-        /*
-           Evitiamo che le stanze
-           si sovrappongano.
-        */
-
-        let overlap = false;
-
-
-        for (const other of rooms) {
-
-            if (
-
-                room.x0 <= other.x1 + 1 &&
-                room.x1 >= other.x0 - 1 &&
-                room.y0 <= other.y1 + 1 &&
-                room.y1 >= other.y0 - 1
-
-            ) {
-
-                overlap = true;
-                break;
-
-            }
-
-        }
-
-
-        if (!overlap) {
-
-            rooms.push(room);
-
-        }
-
-    }
-
-
-    return rooms;
-
-}
-
-
-/* =========================================================
-   DISEGNO CORRIDOIO
-   ========================================================= */
-
-function drawCorridor(grid, a, b) {
+function drawCorridor(matrix, a, b) {
 
     /*
-       Prima orizzontale.
-       Poi verticale.
+        IMPORTANTE:
 
-             A -----------+
-                           |
-                           |
-                           B
+        Il corridoio parte dal CENTROIDE
+        e arriva al CENTROIDE.
+
+        Prima percorre X.
+        Poi percorre Y.
+
+        Ogni cella attraversata viene scritta
+        nella corridorMatrix.
     */
 
-
-    const horizontalStep =
-        Math.sign(b.x - a.x);
-
-
     let x = a.x;
-
-
-    while (true) {
-
-        if (
-            grid[a.y][x] === 0
-        ) {
-
-            grid[a.y][x] = 2;
-
-        }
-
-
-        if (x === b.x) {
-            break;
-        }
-
-
-        x += horizontalStep;
-
-    }
-
-
-    const verticalStep =
-        Math.sign(b.y - a.y);
-
-
     let y = a.y;
 
+    matrix[y][x] = CORRIDOR;
 
-    while (true) {
+    // Orizzontale
+    while (x !== b.x) {
 
-        if (
-            grid[y][b.x] === 0
-        ) {
-
-            grid[y][b.x] = 2;
-
+        if (x < b.x) {
+            x++;
+        } else {
+            x--;
         }
 
-
-        if (y === b.y) {
-            break;
-        }
-
-
-        y += verticalStep;
-
+        matrix[y][x] = CORRIDOR;
     }
 
+    // Verticale
+    while (y !== b.y) {
+
+        if (y < b.y) {
+            y++;
+        } else {
+            y--;
+        }
+
+        matrix[y][x] = CORRIDOR;
+    }
 }
 
 
-/* =========================================================
-   DISEGNO
-   ========================================================= */
+function generateCorridors(rooms, delaunayEdges, mst, settings) {
 
-function drawDungeon(grid, rooms) {
+    const corridorMatrix = createMatrix();
 
+    /*
+        Prima disegniamo tutti i corridoi dell'MST.
+        Questi garantiscono la connessione completa.
+    */
+
+    for (const edge of mst) {
+
+        drawCorridor(
+            corridorMatrix,
+            rooms[edge.a],
+            rooms[edge.b]
+        );
+    }
+
+    /*
+        Gli altri archi Delaunay sono candidati
+        per i corridoi extra.
+    */
+
+    const mstKeys = new Set(
+        mst.map(e => {
+            const a = Math.min(e.a, e.b);
+            const b = Math.max(e.a, e.b);
+            return `${a}-${b}`;
+        })
+    );
+
+    const excluded = delaunayEdges.filter(e => {
+
+        const a = Math.min(e.a, e.b);
+        const b = Math.max(e.a, e.b);
+
+        return !mstKeys.has(`${a}-${b}`);
+    });
+
+    /*
+        Percentuale casuale compresa tra Min e Max.
+    */
+
+    const percentage = randomFloat(
+        settings.extra.min,
+        settings.extra.max
+    );
+
+    const extraCount = Math.floor(
+        excluded.length * percentage / 100
+    );
+
+    shuffle(excluded);
+
+    const extras = excluded.slice(
+        0,
+        extraCount
+    );
+
+    for (const edge of extras) {
+
+        drawCorridor(
+            corridorMatrix,
+            rooms[edge.a],
+            rooms[edge.b]
+        );
+    }
+
+    return {
+        matrix: corridorMatrix,
+        extraCount,
+        percentage
+    };
+}
+
+
+// ------------------------------------------------------------
+// MATRICE FINALE
+// ------------------------------------------------------------
+
+function combineMatrices(roomMatrix, corridorMatrix) {
+
+    /*
+        Si parte dalle stanze.
+
+        Se nella corridorMatrix c'è un corridoio,
+        esso SOVRASCRIVE quello che c'era prima.
+
+        Quindi:
+        vuoto     -> corridoio
+        stanza    -> corridoio
+    */
+
+    const finalMatrix = roomMatrix.map(
+        row => [...row]
+    );
+
+    for (let y = 0; y < GRID; y++) {
+
+        for (let x = 0; x < GRID; x++) {
+
+            if (corridorMatrix[y][x] === CORRIDOR) {
+                finalMatrix[y][x] = CORRIDOR;
+            }
+        }
+    }
+
+    return finalMatrix;
+}
+
+
+// ------------------------------------------------------------
+// RENDER
+// ------------------------------------------------------------
+
+function render(matrix, rooms) {
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    // Sfondo
     ctx.fillStyle = "#111";
-
     ctx.fillRect(
         0,
         0,
@@ -903,456 +773,180 @@ function drawDungeon(grid, rooms) {
         canvas.height
     );
 
+    // Celle
+    for (let y = 0; y < GRID; y++) {
 
-    /*
-       Stanze e corridoi.
-    */
+        for (let x = 0; x < GRID; x++) {
 
-    for (
-        let y = 0;
-        y < SIZE;
-        y++
-    ) {
+            const value = matrix[y][x];
 
-        for (
-            let x = 0;
-            x < SIZE;
-            x++
-        ) {
+            if (value === ROOM) {
 
-            const state =
-                grid[y][x];
+                ctx.fillStyle = "#ddd";
 
+                ctx.fillRect(
+                    x * TILE,
+                    y * TILE,
+                    TILE,
+                    TILE
+                );
 
-            if (state === 1) {
+            } else if (value === CORRIDOR) {
 
-                ctx.fillStyle =
-                    "#d9d2b6";
+                ctx.fillStyle = "#777";
 
+                ctx.fillRect(
+                    x * TILE,
+                    y * TILE,
+                    TILE,
+                    TILE
+                );
             }
-
-            else if (state === 2) {
-
-                ctx.fillStyle =
-                    "#8e876f";
-
-            }
-
-            else {
-
-                continue;
-
-            }
-
-
-            ctx.fillRect(
-                x * TILE,
-                y * TILE,
-                TILE,
-                TILE
-            );
-
         }
-
     }
 
-
     /*
-       Bordo delle stanze.
+        Griglia molto leggera, utile durante il prototipo.
     */
 
-    ctx.strokeStyle = "#4d493f";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(0,0,0,0.12)";
+    ctx.lineWidth = 1;
 
+    for (let i = 0; i <= GRID; i++) {
+
+        ctx.beginPath();
+        ctx.moveTo(i * TILE, 0);
+        ctx.lineTo(i * TILE, GRID * TILE);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i * TILE);
+        ctx.lineTo(GRID * TILE, i * TILE);
+        ctx.stroke();
+    }
+
+    /*
+        Centroidi.
+
+        Li lasciamo visibili per verificare che
+        il corridoio arrivi effettivamente al centro.
+    */
 
     for (const room of rooms) {
 
-        ctx.strokeRect(
+        ctx.fillStyle = "#d22";
 
-            room.x0 * TILE + 1,
-            room.y0 * TILE + 1,
+        ctx.beginPath();
 
-            (room.x1 - room.x0 + 1) *
-                TILE - 2,
-
-            (room.y1 - room.y0 + 1) *
-                TILE - 2
-
+        ctx.arc(
+            room.x * TILE + TILE / 2,
+            room.y * TILE + TILE / 2,
+            4,
+            0,
+            Math.PI * 2
         );
 
+        ctx.fill();
     }
-
-
-    /*
-       Centroidi.
-    */
-
-    ctx.fillStyle = "#c98d45";
-
-
-    for (const room of rooms) {
-
-        ctx.fillRect(
-
-            room.x * TILE + TILE / 2 - 3,
-            room.y * TILE + TILE / 2 - 3,
-
-            6,
-            6
-
-        );
-
-    }
-
 }
 
 
-/* =========================================================
-   GENERAZIONE COMPLETA
-   ========================================================= */
+// ------------------------------------------------------------
+// GENERAZIONE COMPLETA
+// ------------------------------------------------------------
 
-function generateDungeon() {
+function generate() {
 
-    const settings = {
-
-        roomsMin:
-            getValue("roomsMin"),
-
-        roomsMax:
-            getValue("roomsMax"),
-
-
-        topMin:
-            getValue("topMin"),
-
-        topMax:
-            getValue("topMax"),
-
-
-        bottomMin:
-            getValue("bottomMin"),
-
-        bottomMax:
-            getValue("bottomMax"),
-
-
-        leftMin:
-            getValue("leftMin"),
-
-        leftMax:
-            getValue("leftMax"),
-
-
-        rightMin:
-            getValue("rightMin"),
-
-        rightMax:
-            getValue("rightMax"),
-
-
-        extraMin:
-            getValue("extraMin"),
-
-        extraMax:
-            getValue("extraMax")
-
-    };
-
+    const settings = getSettings();
 
     /*
-       Sistemiamo eventuali min/max invertiti.
+        1. MATRICE DELLE STANZE
     */
 
-    [
-        "rooms",
-        "top",
-        "bottom",
-        "left",
-        "right",
-        "extra"
-    ].forEach(type => {
+    const roomData = generateRooms(settings);
 
-        const min =
-            document.getElementById(
-                type + "Min"
-            );
-
-        const max =
-            document.getElementById(
-                type + "Max"
-            );
-
-        if (
-            Number(min.value) >
-            Number(max.value)
-        ) {
-
-            [
-                min.value,
-                max.value
-            ] =
-            [
-                max.value,
-                min.value
-            ];
-
-        }
-
-    });
-
+    const roomMatrix = roomData.matrix;
+    const rooms = roomData.rooms;
 
     /*
-       Generiamo le stanze.
-    */
-
-    const rooms =
-        generateRooms(settings);
-
-
-    /*
-       Servono almeno due stanze
-       per costruire connessioni.
+        Se abbiamo troppo poche stanze,
+        non ha senso procedere.
     */
 
     if (rooms.length < 2) {
 
-        ctx.fillStyle = "#111";
-
-        ctx.fillRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        document.getElementById("stats").innerHTML =
-            "Non riesco a posizionare abbastanza stanze.";
+        document.getElementById("stats").textContent =
+            "Impossibile generare abbastanza stanze.";
 
         return;
-
     }
 
-
     /*
-       Centroidi.
+        2. DELAUNAY
     */
 
-    const points =
-        rooms.map(room => ({
-
-            x: room.x,
-            y: room.y
-
-        }));
-
+    const delaunayEdges = delaunay(rooms);
 
     /*
-       Delaunay.
+        3. MST
     */
 
-    const delaunayEdges =
-        delaunay(points);
-
-
-    /*
-       MST.
-    */
-
-    const mstEdges =
-        minimumSpanningTree(
-            points,
-            delaunayEdges
-        );
-
-
-    /*
-       Archi Delaunay esclusi dall'MST.
-    */
-
-    const mstKeys =
-        new Set(
-            mstEdges.map(
-                e =>
-                    edgeKey(
-                        e.a,
-                        e.b
-                    )
-            )
-        );
-
-
-    const excluded =
-        delaunayEdges.filter(
-            e =>
-                !mstKeys.has(
-                    edgeKey(
-                        e.a,
-                        e.b
-                    )
-                )
-        );
-
-
-    /*
-       Percentuale casuale fra Min e Max.
-    */
-
-    const extraPercent =
-        randomFloat(
-            settings.extraMin,
-            settings.extraMax
-        );
-
-
-    /*
-       Numero di corridoi extra.
-    */
-
-    const extraCount =
-        Math.floor(
-            excluded.length *
-            extraPercent /
-            100
-        );
-
-
-    shuffle(excluded);
-
-
-    const extraEdges =
-        excluded.slice(
-            0,
-            extraCount
-        );
-
-
-    const allCorridors =
-        [
-            ...mstEdges,
-            ...extraEdges
-        ];
-
-
-    /*
-       MATRICE
-
-       0 = vuoto
-       1 = stanza
-       2 = corridoio
-    */
-
-    const grid =
-        Array.from(
-            {
-                length: SIZE
-            },
-            () =>
-                Array(
-                    SIZE
-                ).fill(0)
-        );
-
-
-    /*
-       Disegniamo le stanze
-       nella matrice.
-    */
-
-    for (const room of rooms) {
-
-        for (
-            let y = room.y0;
-            y <= room.y1;
-            y++
-        ) {
-
-            for (
-                let x = room.x0;
-                x <= room.x1;
-                x++
-            ) {
-
-                grid[y][x] = 1;
-
-            }
-
-        }
-
-    }
-
-
-    /*
-       Disegniamo i corridoi.
-    */
-
-    for (const edge of allCorridors) {
-
-        const a =
-            points[edge.a];
-
-        const b =
-            points[edge.b];
-
-
-        drawCorridor(
-            grid,
-            a,
-            b
-        );
-
-    }
-
-
-    /*
-       Rendering provvisorio.
-    */
-
-    drawDungeon(
-        grid,
+    const mst = minimumSpanningTree(
+        delaunayEdges,
         rooms
     );
 
-
     /*
-       Informazioni.
+        4. MATRICE DEI CORRIDOI
     */
 
-    document.getElementById("stats").innerHTML =
+    const corridorData = generateCorridors(
+        rooms,
+        delaunayEdges,
+        mst,
+        settings
+    );
 
-        "Stanze generate: " +
-        rooms.length +
+    const corridorMatrix = corridorData.matrix;
 
-        "<br>Delaunay: " +
-        delaunayEdges.length +
+    /*
+        5. MATRICE FINALE
 
-        " archi" +
+        I corridoi sovrascrivono le stanze.
+    */
 
-        "<br>MST: " +
-        mstEdges.length +
+    const finalMatrix = combineMatrices(
+        roomMatrix,
+        corridorMatrix
+    );
 
-        " corridoi" +
+    /*
+        6. RENDER
+    */
 
-        "<br>Extra: " +
-        extraEdges.length +
+    render(
+        finalMatrix,
+        rooms
+    );
 
-        " corridoi";
+    /*
+        STATISTICHE
+    */
 
+    document.getElementById("stats").textContent =
+        `Stanze: ${rooms.length} | ` +
+        `Archi Delaunay: ${delaunayEdges.length} | ` +
+        `Corridoi MST: ${mst.length} | ` +
+        `Corridoi extra: ${corridorData.extraCount} ` +
+        `(${corridorData.percentage.toFixed(1)}%)`;
 }
 
 
-/* =========================================================
-   AVVIO
-   ========================================================= */
+// ------------------------------------------------------------
+// AVVIO
+// ------------------------------------------------------------
 
-document
-    .getElementById("generate")
-    .addEventListener(
-        "click",
-        generateDungeon
-    );
-
-
-generateDungeon();
+generate();
 
 </script>
 
