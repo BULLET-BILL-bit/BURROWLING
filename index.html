@@ -134,6 +134,7 @@
 const GRID = 32;
 const TILE = 32;
 
+
 // ------------------------------------------------------------
 // TILESET
 // ------------------------------------------------------------
@@ -185,6 +186,7 @@ function shuffle(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+
     return array;
 }
 
@@ -216,7 +218,10 @@ function getSettings() {
             [min, max] = [max, min];
         }
 
-        return { min, max };
+        return {
+            min,
+            max
+        };
     }
 
     return {
@@ -249,9 +254,8 @@ function generateRooms(settings) {
 
         Le stanze possono compenetrarsi.
 
-        L'unico vincolo mantenuto è che due stanze non abbiano
-        lo stesso centroide, perché i centroidi sono i punti
-        utilizzati successivamente dalla triangolazione di Delaunay.
+        L'unico vincolo è che due stanze non abbiano
+        lo stesso centroide.
     */
 
     const usedCentroids = new Set();
@@ -281,8 +285,7 @@ function generateRooms(settings) {
         /*
             Il centroide è una cella vera e propria.
 
-            Lasciamo comunque una cella di margine dal bordo
-            per evitare che la stanza esca dalla griglia.
+            Lasciamo una cella di margine dal bordo.
         */
 
         const minX = left + 1;
@@ -300,7 +303,6 @@ function generateRooms(settings) {
 
         const centroidKey = `${cx}-${cy}`;
 
-        // Evitiamo solo centroidi identici.
         if (usedCentroids.has(centroidKey)) {
             continue;
         }
@@ -311,7 +313,7 @@ function generateRooms(settings) {
             La stanza viene scritta direttamente nella matrice.
 
             Se si sovrappone a una stanza precedente,
-            semplicemente riscrive quelle celle.
+            riscrive semplicemente quelle celle.
         */
 
         for (
@@ -376,8 +378,11 @@ function circumcircle(a, b, c) {
         return null;
     }
 
-    const ux = (D * E - B * F) / G;
-    const uy = (A * F - C * E) / G;
+    const ux =
+        (D * E - B * F) / G;
+
+    const uy =
+        (A * F - C * E) / G;
 
     const dx = ux - a.x;
     const dy = uy - a.y;
@@ -427,7 +432,11 @@ function delaunay(points) {
         original: -3
     };
 
-    pts.push(superA, superB, superC);
+    pts.push(
+        superA,
+        superB,
+        superC
+    );
 
     const n = points.length;
 
@@ -441,7 +450,11 @@ function delaunay(points) {
 
         const bad = [];
 
-        for (let t = 0; t < triangles.length; t++) {
+        for (
+            let t = 0;
+            t < triangles.length;
+            t++
+        ) {
 
             const tri = triangles[t];
 
@@ -451,7 +464,9 @@ function delaunay(points) {
                 pts[tri[2]]
             );
 
-            if (!circle) continue;
+            if (!circle) {
+                continue;
+            }
 
             const dx = p.x - circle.x;
             const dy = p.y - circle.y;
@@ -478,8 +493,15 @@ function delaunay(points) {
 
             for (const edge of edges) {
 
-                const a = Math.min(edge[0], edge[1]);
-                const b = Math.max(edge[0], edge[1]);
+                const a = Math.min(
+                    edge[0],
+                    edge[1]
+                );
+
+                const b = Math.max(
+                    edge[0],
+                    edge[1]
+                );
 
                 const key = `${a}-${b}`;
 
@@ -496,12 +518,18 @@ function delaunay(points) {
 
         for (const [key, count] of edgeMap) {
 
-            if (count !== 1) continue;
+            if (count !== 1) {
+                continue;
+            }
 
             const [a, b] =
                 key.split("-").map(Number);
 
-            triangles.push([a, b, i]);
+            triangles.push([
+                a,
+                b,
+                i
+            ]);
         }
     }
 
@@ -537,7 +565,10 @@ function delaunay(points) {
         const [a, b] =
             key.split("-").map(Number);
 
-        return { a, b };
+        return {
+            a,
+            b
+        };
     });
 }
 
@@ -551,7 +582,10 @@ function distance(a, b) {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
 
-    return Math.sqrt(dx * dx + dy * dy);
+    return Math.sqrt(
+        dx * dx +
+        dy * dy
+    );
 }
 
 
@@ -559,24 +593,30 @@ function distance(a, b) {
 // MINIMUM SPANNING TREE
 // ------------------------------------------------------------
 
-function minimumSpanningTree(edges, rooms) {
+function minimumSpanningTree(
+    edges,
+    rooms
+) {
 
-    const sorted = [...edges].sort((e1, e2) => {
+    const sorted = [...edges].sort(
+        (e1, e2) => {
 
-        const d1 = distance(
-            rooms[e1.a],
-            rooms[e1.b]
-        );
+            const d1 = distance(
+                rooms[e1.a],
+                rooms[e1.b]
+            );
 
-        const d2 = distance(
-            rooms[e2.a],
-            rooms[e2.b]
-        );
+            const d2 = distance(
+                rooms[e2.a],
+                rooms[e2.b]
+            );
 
-        return d1 - d2;
-    });
+            return d1 - d2;
+        }
+    );
 
-    const parent = rooms.map((_, i) => i);
+    const parent =
+        rooms.map((_, i) => i);
 
     function find(x) {
 
@@ -609,7 +649,12 @@ function minimumSpanningTree(edges, rooms) {
 
     for (const edge of sorted) {
 
-        if (union(edge.a, edge.b)) {
+        if (
+            union(
+                edge.a,
+                edge.b
+            )
+        ) {
             mst.push(edge);
         }
     }
@@ -622,7 +667,11 @@ function minimumSpanningTree(edges, rooms) {
 // CORRIDOI
 // ------------------------------------------------------------
 
-function drawCorridor(matrix, a, b) {
+function drawCorridor(
+    matrix,
+    a,
+    b
+) {
 
     let x = a.x;
     let y = a.y;
@@ -662,7 +711,8 @@ function generateCorridors(
     settings
 ) {
 
-    const corridorMatrix = createMatrix();
+    const corridorMatrix =
+        createMatrix();
 
     for (const edge of mst) {
 
@@ -676,36 +726,58 @@ function generateCorridors(
     const mstKeys = new Set(
         mst.map(e => {
 
-            const a = Math.min(e.a, e.b);
-            const b = Math.max(e.a, e.b);
+            const a = Math.min(
+                e.a,
+                e.b
+            );
+
+            const b = Math.max(
+                e.a,
+                e.b
+            );
 
             return `${a}-${b}`;
         })
     );
 
-    const excluded = delaunayEdges.filter(e => {
+    const excluded =
+        delaunayEdges.filter(e => {
 
-        const a = Math.min(e.a, e.b);
-        const b = Math.max(e.a, e.b);
+            const a = Math.min(
+                e.a,
+                e.b
+            );
 
-        return !mstKeys.has(`${a}-${b}`);
-    });
+            const b = Math.max(
+                e.a,
+                e.b
+            );
 
-    const percentage = randomFloat(
-        settings.extra.min,
-        settings.extra.max
-    );
+            return !mstKeys.has(
+                `${a}-${b}`
+            );
+        });
 
-    const extraCount = Math.floor(
-        excluded.length * percentage / 100
-    );
+    const percentage =
+        randomFloat(
+            settings.extra.min,
+            settings.extra.max
+        );
+
+    const extraCount =
+        Math.floor(
+            excluded.length *
+            percentage /
+            100
+        );
 
     shuffle(excluded);
 
-    const extras = excluded.slice(
-        0,
-        extraCount
-    );
+    const extras =
+        excluded.slice(
+            0,
+            extraCount
+        );
 
     for (const edge of extras) {
 
@@ -733,18 +805,29 @@ function combineMatrices(
     corridorMatrix
 ) {
 
-    const finalMatrix = roomMatrix.map(
-        row => [...row]
-    );
+    const finalMatrix =
+        roomMatrix.map(
+            row => [...row]
+        );
 
-    for (let y = 0; y < GRID; y++) {
+    for (
+        let y = 0;
+        y < GRID;
+        y++
+    ) {
 
-        for (let x = 0; x < GRID; x++) {
+        for (
+            let x = 0;
+            x < GRID;
+            x++
+        ) {
 
             if (
-                corridorMatrix[y][x] === CORRIDOR
+                corridorMatrix[y][x] ===
+                CORRIDOR
             ) {
-                finalMatrix[y][x] = CORRIDOR;
+                finalMatrix[y][x] =
+                    CORRIDOR;
             }
         }
     }
@@ -754,10 +837,29 @@ function combineMatrices(
 
 
 // ------------------------------------------------------------
-// CONNESSIONI
+// CONNESSIONI PER LA RIGA
 // ------------------------------------------------------------
 
-function isCorridor(matrix, x, y) {
+/*
+    ATTENZIONE:
+
+    Per scegliere la RIGA del tileset:
+
+    0 = esiste una casella adiacente
+        (ROOM oppure CORRIDOR)
+
+    1 = non esiste una casella adiacente
+        (EMPTY / roccia)
+
+    Quindi qui NON ci interessa se il vicino
+    è stanza o corridoio.
+*/
+
+function isOccupied(
+    matrix,
+    x,
+    y
+) {
 
     if (
         x < 0 ||
@@ -768,34 +870,68 @@ function isCorridor(matrix, x, y) {
         return false;
     }
 
-    return matrix[y][x] === CORRIDOR;
+    return matrix[y][x] !== EMPTY;
 }
 
 
-function getConnections(matrix, x, y) {
+function getConnections(
+    matrix,
+    x,
+    y
+) {
 
     return {
-        N: isCorridor(matrix, x, y - 1),
-        E: isCorridor(matrix, x + 1, y),
-        S: isCorridor(matrix, x, y + 1),
-        W: isCorridor(matrix, x - 1, y)
+
+        N: isOccupied(
+            matrix,
+            x,
+            y - 1
+        ),
+
+        E: isOccupied(
+            matrix,
+            x + 1,
+            y
+        ),
+
+        S: isOccupied(
+            matrix,
+            x,
+            y + 1
+        ),
+
+        W: isOccupied(
+            matrix,
+            x - 1,
+            y
+        )
     };
 }
 
 
-function getRowFromConnections(connections) {
-
-    const key =
-        (connections.N ? "1" : "0") +
-        (connections.E ? "1" : "0") +
-        (connections.S ? "1" : "0") +
-        (connections.W ? "1" : "0");
+function getRowFromConnections(
+    connections
+) {
 
     /*
-        16 configurazioni teoriche.
-        1111 viene esclusa.
+        0 = apertura / altra casella
+        1 = parete / roccia
 
-        Indici di riga del tileset:
+        Ordine:
+
+        N E S W
+    */
+
+    const key =
+        (connections.N ? "0" : "1") +
+        (connections.E ? "0" : "1") +
+        (connections.S ? "0" : "1") +
+        (connections.W ? "0" : "1");
+
+
+    /*
+        Matrice del TILESET
+
         1  = 0000
         2  = 0001
         3  = 0010
@@ -812,9 +948,12 @@ function getRowFromConnections(connections) {
         14 = 1101
         15 = 1110
         16 = roccia piena
+
+        1111 non viene utilizzata.
     */
 
     const rows = {
+
         "0000": 1,
         "0001": 2,
         "0010": 3,
@@ -837,23 +976,64 @@ function getRowFromConnections(connections) {
 
 
 // ------------------------------------------------------------
+// CONNESSIONI DEI CORRIDOI
+// ------------------------------------------------------------
+
+/*
+    Per la scelta della COLONNA invece
+    distinguiamo realmente i corridoi.
+
+    Qui ROOM e EMPTY sono entrambi "non corridoio".
+*/
+
+function isCorridor(
+    matrix,
+    x,
+    y
+) {
+
+    if (
+        x < 0 ||
+        x >= GRID ||
+        y < 0 ||
+        y >= GRID
+    ) {
+        return false;
+    }
+
+    return matrix[y][x] === CORRIDOR;
+}
+
+
+// ------------------------------------------------------------
 // SCELTA COLONNA
 // ------------------------------------------------------------
 
-function getColumn(matrix, x, y) {
+function getColumn(
+    matrix,
+    x,
+    y
+) {
 
-    const value = matrix[y][x];
+    const value =
+        matrix[y][x];
+
 
     /*
         ROCCIA PIENA
 
-        Tutte le 12 colonne sono disponibili
-        per la randomizzazione.
+        Tutte le 12 colonne
+        sono disponibili.
     */
 
     if (value === EMPTY) {
-        return randomInt(1, 12);
+
+        return randomInt(
+            1,
+            12
+        );
     }
+
 
     /*
         STANZA
@@ -862,59 +1042,106 @@ function getColumn(matrix, x, y) {
     */
 
     if (value === ROOM) {
-        return randomInt(1, 4);
+
+        return randomInt(
+            1,
+            4
+        );
     }
+
 
     /*
         CORRIDOIO
 
-        Controlliamo le connessioni.
+        Qui guardiamo SOLO
+        i corridoi adiacenti.
     */
 
-    const N = isCorridor(matrix, x, y - 1);
-    const E = isCorridor(matrix, x + 1, y);
-    const S = isCorridor(matrix, x, y + 1);
-    const W = isCorridor(matrix, x - 1, y);
+    const N =
+        isCorridor(
+            matrix,
+            x,
+            y - 1
+        );
+
+    const E =
+        isCorridor(
+            matrix,
+            x + 1,
+            y
+        );
+
+    const S =
+        isCorridor(
+            matrix,
+            x,
+            y + 1
+        );
+
+    const W =
+        isCorridor(
+            matrix,
+            x - 1,
+            y
+        );
+
 
     /*
-        Caso 2:
+        CASO 2
 
-        almeno uno tra E, W, S è corridoio
-        e N NON è corridoio.
+        Almeno uno tra E, W, S
+        è corridoio
 
-        Colonne 5-8.
+        N NON è corridoio
+
+        → colonne 5-8
     */
 
     if (
         !N &&
         (E || W || S)
     ) {
-        return randomInt(5, 8);
+
+        return randomInt(
+            5,
+            8
+        );
     }
 
+
     /*
-        Caso 3:
+        CASO 3
 
         N è corridoio
-        e almeno uno tra E/W è corridoio.
 
-        Colonne 9-10.
+        e almeno uno tra E/W
+        è corridoio
+
+        → colonne 9-10
     */
 
     if (
         N &&
         (E || W)
     ) {
-        return randomInt(9, 10);
+
+        return randomInt(
+            9,
+            10
+        );
     }
 
+
     /*
-        Caso 4:
+        CASO 4
 
         N è corridoio
-        E e W NON sono corridoio.
 
-        Colonne 11-12.
+        E NON è corridoio
+
+        W NON è corridoio
+
+        → colonne 11-12
     */
 
     if (
@@ -922,15 +1149,25 @@ function getColumn(matrix, x, y) {
         !E &&
         !W
     ) {
-        return randomInt(11, 12);
+
+        return randomInt(
+            11,
+            12
+        );
     }
 
+
     /*
-        Un corridoio isolato non dovrebbe poter esistere.
+        Un corridoio isolato
+        non dovrebbe esistere.
+
         Fallback di sicurezza.
     */
 
-    return randomInt(5, 8);
+    return randomInt(
+        5,
+        8
+    );
 }
 
 
@@ -949,30 +1186,45 @@ function drawTile(
     /*
         row e column sono 1-based.
 
-        Il primo tile parte a 16 px dal bordo.
-        Ogni tile successivo è separato da 16 px.
+        TILE:
+        32x32
+
+        GAP:
+        16
+
+        BORDER:
+        16
     */
 
     const sourceX =
         TILESET_BORDER +
         (column - 1) *
-        (TILESET_TILE + TILESET_GAP);
+        (
+            TILESET_TILE +
+            TILESET_GAP
+        );
 
     const sourceY =
         TILESET_BORDER +
         (row - 1) *
-        (TILESET_TILE + TILESET_GAP);
+        (
+            TILESET_TILE +
+            TILESET_GAP
+        );
 
     ctx.drawImage(
+
         tilesetImage,
 
         sourceX,
         sourceY,
+
         TILESET_TILE,
         TILESET_TILE,
 
         destX,
         destY,
+
         TILE,
         TILE
     );
@@ -983,10 +1235,15 @@ function drawTile(
 // RENDER
 // ------------------------------------------------------------
 
-function render(matrix, rooms) {
+function render(
+    matrix,
+    rooms
+) {
 
     const canvas =
-        document.getElementById("canvas");
+        document.getElementById(
+            "canvas"
+        );
 
     const ctx =
         canvas.getContext("2d");
@@ -998,28 +1255,45 @@ function render(matrix, rooms) {
         canvas.height
     );
 
+
     /*
-        Disegniamo ogni cella usando il tileset.
+        Disegniamo ogni cella.
     */
 
-    for (let y = 0; y < GRID; y++) {
+    for (
+        let y = 0;
+        y < GRID;
+        y++
+    ) {
 
-        for (let x = 0; x < GRID; x++) {
+        for (
+            let x = 0;
+            x < GRID;
+            x++
+        ) {
 
-            const value = matrix[y][x];
+            const value =
+                matrix[y][x];
 
             let row;
             let column;
 
+
             /*
-                ROCCIA PIENA
+                ROCCIA
             */
 
             if (value === EMPTY) {
 
                 row = 16;
-                column = randomInt(1, 12);
+
+                column =
+                    randomInt(
+                        1,
+                        12
+                    );
             }
+
 
             /*
                 STANZA
@@ -1027,31 +1301,72 @@ function render(matrix, rooms) {
 
             else if (value === ROOM) {
 
+                /*
+                    Per la riga guardiamo
+                    ROOM + CORRIDOR.
+                */
+
                 const connections =
-                    getConnections(matrix, x, y);
+                    getConnections(
+                        matrix,
+                        x,
+                        y
+                    );
 
                 row =
                     getRowFromConnections(
                         connections
                     );
 
+                /*
+                    La stanza usa
+                    colonne 1-4.
+                */
+
                 column =
-                    randomInt(1, 4);
+                    randomInt(
+                        1,
+                        4
+                    );
             }
+
 
             /*
                 CORRIDOIO
             */
 
-            else if (value === CORRIDOR) {
+            else if (
+                value === CORRIDOR
+            ) {
+
+                /*
+                    Anche per il corridoio
+                    la RIGA dipende dalla
+                    presenza di qualsiasi
+                    casella adiacente.
+
+                    ROOM o CORRIDOR
+                    non fa differenza.
+                */
 
                 const connections =
-                    getConnections(matrix, x, y);
+                    getConnections(
+                        matrix,
+                        x,
+                        y
+                    );
 
                 row =
                     getRowFromConnections(
                         connections
                     );
+
+
+                /*
+                    La COLONNA invece
+                    viene decisa separatamente
+                    guardando SOLO i corridoi.
+                */
 
                 column =
                     getColumn(
@@ -1060,6 +1375,7 @@ function render(matrix, rooms) {
                         y
                     );
             }
+
 
             drawTile(
                 ctx,
@@ -1081,21 +1397,27 @@ function generate() {
 
     /*
         Se il tileset non è ancora pronto,
-        aspettiamo il caricamento.
+        aspettiamo.
     */
 
     if (!tilesetReady) {
         return;
     }
 
-    const settings = getSettings();
+
+    const settings =
+        getSettings();
+
 
     /*
-        1. MATRICE DELLE STANZE
+        1.
+        GENERAZIONE STANZE
     */
 
     const roomData =
-        generateRooms(settings);
+        generateRooms(
+            settings
+        );
 
     const roomMatrix =
         roomData.matrix;
@@ -1103,15 +1425,21 @@ function generate() {
     const rooms =
         roomData.rooms;
 
+
     /*
-        2. DELAUNAY
+        2.
+        DELAUNAY
     */
 
     const delaunayEdges =
-        delaunay(rooms);
+        delaunay(
+            rooms
+        );
+
 
     /*
-        3. MST
+        3.
+        MINIMUM SPANNING TREE
     */
 
     const mst =
@@ -1120,8 +1448,10 @@ function generate() {
             rooms
         );
 
+
     /*
-        4. MATRICE DEI CORRIDOI
+        4.
+        GENERAZIONE CORRIDOI
     */
 
     const corridorData =
@@ -1135,10 +1465,13 @@ function generate() {
     const corridorMatrix =
         corridorData.matrix;
 
-    /*
-        5. MATRICE FINALE
 
-        I corridoi sovrascrivono le stanze.
+    /*
+        5.
+        MATRICE FINALE
+
+        I corridoi sovrascrivono
+        le stanze.
     */
 
     const finalMatrix =
@@ -1147,8 +1480,10 @@ function generate() {
             corridorMatrix
         );
 
+
     /*
-        6. RENDER
+        6.
+        RENDER
     */
 
     render(
@@ -1156,11 +1491,15 @@ function generate() {
         rooms
     );
 
+
     /*
         STATISTICHE
     */
 
-    document.getElementById("stats").textContent =
+    document.getElementById(
+        "stats"
+    ).textContent =
+
         `Stanze: ${rooms.length} | ` +
         `Archi Delaunay: ${delaunayEdges.length} | ` +
         `Corridoi MST: ${mst.length} | ` +
@@ -1174,7 +1513,9 @@ function generate() {
 // ------------------------------------------------------------
 
 /*
-    generate() viene chiamato dall'onload del tileset.
+    generate() viene chiamato
+    automaticamente quando il tileset
+    è stato caricato.
 */
 
 </script>
