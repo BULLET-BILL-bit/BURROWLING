@@ -1042,176 +1042,53 @@ function isCorridor(
 // SCELTA COLONNA
 // ------------------------------------------------------------
 
-function getColumn(
-    matrix,
-    x,
-    y
-) {
+function getColumn(matrix, x, y, rooms) {
 
-    const value =
-        matrix[y][x];
-
-
-    /*
-        ROCCIA PIENA
-
-        Tutte le 12 colonne
-        sono disponibili.
-    */
-
-    if (value === EMPTY) {
-
-        return randomInt(
-            1,
-            12
-        );
+    if (matrix[y][x] === EMPTY) {
+        return randomInt(1, 12);
     }
 
-
-    /*
-        STANZA
-
-        Colonne 1-4.
-    */
-
-    if (value === ROOM) {
-
-        return randomInt(
-            1,
-            4
-        );
+    if (matrix[y][x] === ROOM) {
+        return randomInt(1, 4);
     }
-
-
-    /*
-        CORRIDOIO
-
-        Qui guardiamo SOLO
-        i corridoi adiacenti.
-    */
-
-    const N =
-        isCorridor(
-            matrix,
-            x,
-            y - 1
-        );
-
-    const E =
-        isCorridor(
-            matrix,
-            x + 1,
-            y
-        );
-
-    const S =
-        isCorridor(
-            matrix,
-            x,
-            y + 1
-        );
-
-    const W =
-        isCorridor(
-            matrix,
-            x - 1,
-            y
-        );
-
-
-    /*
-        CASO 2
-
-        Almeno uno tra E, W, S
-        è corridoio
-
-        N NON è corridoio
-
-        → colonne 5-8
-    */
-
-    if (
-        !N &&
-        (E || W || S)
-    ) {
-
-        return randomInt(
-            5,
-            8
-        );
-    }
-
-
-    /*
-        CASO 3
-
-        N è corridoio
-
-        e almeno uno tra E/W
-        è corridoio
-
-        → colonne 9-10
-    */
-
-    if (
-        N &&
-        (E || W)
-    ) {
-
-        return randomInt(
-            9,
-            10
-        );
-    }
-
-
-    /*
-        CASO 4
-
-        N è corridoio
-
-        E NON è corridoio
-
-        W NON è corridoio
-
-        → colonne 11-12
-    */
-
-    if (
-        N &&
-        !E &&
-        !W
-    ) {
-
-        return randomInt(
-            11,
-            12
-        );
-    }
-
-
-    /*
-        Un corridoio isolato
-        non dovrebbe esistere.
-
-        Fallback di sicurezza.
-    */
-
-    return randomInt(
-        5,
-        8
-    );
-}
 
     if (matrix[y][x] === CORRIDOR) {
-    console.log(
-        "CORRIDOIO",
-        x, y,
-        "N:", N,
-        "E:", E,
-        "S:", S,
-        "W:", W
-    );
+
+        const N = isCorridor(matrix, x, y - 1);
+        const E = isCorridor(matrix, x + 1, y);
+        const S = isCorridor(matrix, x, y + 1);
+        const W = isCorridor(matrix, x - 1, y);
+
+        const isCentroid = rooms.some(room =>
+            room.x === x && room.y === y
+        );
+
+        // Corridoio orizzontale/verticale senza scala
+        if (!N && (E || W || S)) {
+            return randomInt(5, 8);
+        }
+
+        // Scala + direzione orizzontale
+        if (N && (E || W)) {
+            return randomInt(9, 10);
+        }
+
+        // Scala verticale pura
+        if (N && !E && !W) {
+
+            // Se è il centroide, usa comunque il tile delle colonne 9-10
+            if (isCentroid) {
+                return randomInt(9, 10);
+            }
+
+            return randomInt(11, 12);
+        }
+
+        // Fallback
+        return randomInt(5, 8);
+    }
+
+    return randomInt(1, 12);
 }
 
 // ------------------------------------------------------------
@@ -1411,13 +1288,7 @@ function render(
                     guardando SOLO i corridoi.
                 */
 
-                column =
-                    getColumn(
-                        matrix,
-                        x,
-                        y
-                    );
-            }
+                column = getColumn(matrix, x, y, rooms);
 
 
             drawTile(
