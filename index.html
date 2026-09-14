@@ -133,7 +133,7 @@
 
 const GRID = 32;
 const TILE = 32;
-
+const CENTROID_MARGIN = 1;
 
 // ------------------------------------------------------------
 // TILESET
@@ -283,20 +283,20 @@ function generateRooms(settings) {
         );
 
         /*
-            Il centroide è una cella vera e propria.
+            Il centroide viene scelto in base
+            solamente al margine della griglia.
 
-            Lasciamo una cella di margine dal bordo.
+            La dimensione della stanza NON influenza
+            più la posizione del centroide.
+
+            La stanza può quindi sbordare dalla sezione.
         */
 
-        const minX = left + 1;
-        const maxX = GRID - right - 2;
+        const minX = CENTROID_MARGIN;
+        const maxX = GRID - 1 - CENTROID_MARGIN;
 
-        const minY = up + 1;
-        const maxY = GRID - down - 2;
-
-        if (minX > maxX || minY > maxY) {
-            continue;
-        }
+        const minY = CENTROID_MARGIN;
+        const maxY = GRID - 1 - CENTROID_MARGIN;
 
         const cx = randomInt(minX, maxX);
         const cy = randomInt(minY, maxY);
@@ -310,10 +310,10 @@ function generateRooms(settings) {
         usedCentroids.add(centroidKey);
 
         /*
-            La stanza viene scritta direttamente nella matrice.
+            La stanza viene scritta attorno al centroide.
 
-            Se si sovrappone a una stanza precedente,
-            riscrive semplicemente quelle celle.
+            Se sborda dalla matrice, le celle esterne
+            vengono semplicemente ignorate.
         */
 
         for (
@@ -328,6 +328,15 @@ function generateRooms(settings) {
                 x++
             ) {
 
+                if (
+                    x < 0 ||
+                    x >= GRID ||
+                    y < 0 ||
+                    y >= GRID
+                ) {
+                    continue;
+                }
+
                 roomMatrix[y][x] = ROOM;
             }
         }
@@ -340,6 +349,30 @@ function generateRooms(settings) {
             left,
             right
         });
+    }
+
+    /*
+        CORNICE DELLA SEZIONE
+
+        La prima e l'ultima riga,
+        la prima e l'ultima colonna
+        sono sempre roccia.
+
+        Questo viene applicato DOPO la generazione
+        delle stanze, quindi può tagliare le stanze
+        che hanno sbordato.
+    */
+
+    for (let x = 0; x < GRID; x++) {
+
+        roomMatrix[0][x] = EMPTY;
+        roomMatrix[GRID - 1][x] = EMPTY;
+    }
+
+    for (let y = 0; y < GRID; y++) {
+
+        roomMatrix[y][0] = EMPTY;
+        roomMatrix[y][GRID - 1] = EMPTY;
     }
 
     return {
